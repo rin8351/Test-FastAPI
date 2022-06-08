@@ -1,10 +1,10 @@
 
+from msilib.schema import tables
 from fastapi import FastAPI, WebSocket
 from fastapi.responses import HTMLResponse
 import json
 
 app = FastAPI()
-
 html = """
 <!DOCTYPE html>
 <html>
@@ -12,22 +12,30 @@ html = """
         <title>Test</title>
     </head>
     <body>
-        <h1>Write</h1>
+        <h2>Write</h2>
         <form action="" onsubmit="sendMessage(event)">
             <input type="text" id="messageText" autocomplete="off"/>
             <button>Send</button>
         </form>
-        <table>
-            <tr><td num_mes></td><td id='messages'></td></tr></br>
+        <table id="tbody" border="1">
+           <tr>
+            <th>Number</th>
+            <th>Message</th>
+            </tr>
         </table>
         <script>
             var ws = new WebSocket("ws://localhost:8000/ws");
             ws.onmessage = function(event) {
-                var messages = document.getElementById('messages')
-                var message = document.createElement('tr')
-                var content = document.createTextNode(JSON.parse(event.data))
-                message.appendChild(content)
-                messages.appendChild(message)
+                var row = document.createElement('tr')
+                var num = document.createElement('td')
+                var mess = document.createElement('td')
+                num.appendChild(document.createTextNode(JSON.parse(event.data)[0]))
+                mess.appendChild(document.createTextNode(JSON.parse(event.data)[1]))
+                
+                row.appendChild(num)
+                row.appendChild(mess)
+                document.getElementById('tbody').appendChild(row)
+               
             };
             function sendMessage(event) {
                 var input = document.getElementById("messageText")
@@ -41,17 +49,18 @@ html = """
 """
 
 @app.get("/")
-async def get():
+def get_html():
     return HTMLResponse(html)
-
 
 @app.websocket("/ws")
 async def websocket_endpoint(websocket: WebSocket):
-    num_mes=0
     await websocket.accept()
+    num_mess = 0
     while True:
-        num_mes+=1
+        num_mess += 1
         data = await websocket.receive_text()
-        data = json.loads(data)
-        await websocket.send_text(json.dumps(f"{num_mes}. {data}"))
+        data = [num_mess, json.loads(data)]
+        print(data)
+        await websocket.send_text(json.dumps(data))
+
 
