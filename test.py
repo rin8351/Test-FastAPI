@@ -16,7 +16,7 @@ html = """
         <form action="" onsubmit="sendMessage(event)">
             <input type="text" id="messageText" autocomplete="off"/>
             <button>Send</button>
-        </form>
+        </form><br>
         <table id="tbody" border="1">
            <tr>
             <th>Number</th>
@@ -29,8 +29,8 @@ html = """
                 var row = document.createElement('tr')
                 var num = document.createElement('td')
                 var mess = document.createElement('td')
-                num.appendChild(document.createTextNode(JSON.parse(event.data)[0]))
-                mess.appendChild(document.createTextNode(JSON.parse(event.data)[1]))
+                num.appendChild(document.createTextNode(JSON.parse(event.data)['num']))
+                mess.appendChild(document.createTextNode(JSON.parse(event.data)['text']))
                 row.appendChild(num)
                 row.appendChild(mess)
                 document.getElementById('tbody').appendChild(row)
@@ -58,7 +58,9 @@ async def websocket_endpoint(websocket: WebSocket):
     num_mess = 0
     while True:
         num_mess += 1
-        data = await websocket.receive_text()
-        data = [num_mess, json.loads(data)]
-        print(data)
+        text = await websocket.receive_text()
+        data = {
+            "num": num_mess,
+            "text": json.loads(text)
+        }
         await websocket.send_text(json.dumps(data))
