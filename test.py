@@ -1,5 +1,3 @@
-
-from msilib.schema import tables
 from fastapi import FastAPI, WebSocket
 from fastapi.responses import HTMLResponse
 import json
